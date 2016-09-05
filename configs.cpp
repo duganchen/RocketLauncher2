@@ -26,10 +26,12 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QFileDialog>
+#include <QStandardPaths>
 
 void RocketLauncher2::on_button_loadConfigExt_clicked()
 {
-    QString settingsDir = QFileDialog::getOpenFileName(this,"Load a configuration file.", QString(),"Rocket Files (*.rocket)");
+    QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString settingsDir = QFileDialog::getOpenFileName(this,"Load a configuration file.", documents,"Rocket Files (*.rocket)");
     if (settingsDir != NULL)
     {
         loadExtConfig(settingsDir);
@@ -208,7 +210,8 @@ void RocketLauncher2::on_button_loadFavConfig_clicked()
 
 void RocketLauncher2::saveToExternal(RocketFile &rocket, QString name)
 {
-    QString settingsDir = QFileDialog::getSaveFileName(this,"Choose where you wish to save the configuration.", m_mainAppPath.filePath(name + ".rocket"),"Rocket Files (*.rocket)");
+    QString defaultName = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + name + ".rocket";
+    QString settingsDir = QFileDialog::getSaveFileName(this,"Choose where you wish to save the configuration.", defaultName, "Rocket Files (*.rocket)");
     QSettings rocketSetting(settingsDir,QSettings::IniFormat);
     rocketSetting.setValue("name", rocket.name);
     rocketSetting.setValue("engName",rocket.engName);
