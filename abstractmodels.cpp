@@ -45,7 +45,7 @@ void EngineListModel::setCurrentEngine(const int index)
     qDebug() << "Udating Engine at index " << index;
     //qDebug().quote();
 
-    if (index >= Engines_.size()) return;
+    if (index >= Engines_.count()) return;
     else
     {
         selectedEngine_ = &Engines_[index];
@@ -152,24 +152,26 @@ QString EngineListModel::updateEngine(QString engine, QString path, EngineType t
     if (searchResult > -1)
     {
         Engines_[searchResult].path = path;
+        QModelIndex index = createIndex(searchResult, 0, nullptr);
+        emit dataChanged(index, index);
         QMessageBox::information(NULL,"Executable Updated", QString("%1 engine updated!").arg(engine));
         emit updateCombo(engine);
-        emit dataChanged(QModelIndex(),QModelIndex());
         SaveEngineData();
 
         return "Success";
     }
 
     EngineInfo newengine = {path, engine, type, pic};
+    beginInsertRows(QModelIndex(), Engines_.count(), Engines_.count());
     Engines_ << newengine;
+    endInsertRows();
 
     if (known)
         QMessageBox::information(NULL,"Executable Added",QString("%1 engine added!").arg(engine));
     else
-        QMessageBox::information(NULL,"Unkown executable","Unrecognized engine added!");
+        QMessageBox::information(NULL,"Unknown executable","Unrecognized engine added!");
 
     emit updateCombo(engine);
-    emit dataChanged(QModelIndex(),QModelIndex());
     SaveEngineData();
 
     return "Success";
@@ -182,7 +184,7 @@ QVariant EngineListModel::data(const QModelIndex& index, int role) const {
         return QVariant();
     }
 
-    if (index.row() >= Engines_.size())
+    if (index.row() >= Engines_.count())
     {
         return QVariant();
     }
@@ -227,14 +229,15 @@ void EngineListModel::LoadEngineData()
                                  static_cast<EngineType>(EngineSettings.value("type").toInt()),
                                  static_cast<EnginePic>(EngineSettings.value("image").toInt())
                                };
+        beginInsertRows(QModelIndex(), Engines_.count(), Engines_.count());
         Engines_.append(newengine);
+        endInsertRows();
     }
 
     EngineSettings.endArray();
     if (EngineSettings.contains("doomexe"))
         DoomExePath = EngineSettings.value("doomexe").toString();
 
-    emit dataChanged(QModelIndex(),QModelIndex());
     int lastIndex = EngineSettings.value("Last Index").toInt();
     setCurrentEngine(lastIndex);
     emit updateComboIndex(lastIndex);
@@ -279,20 +282,22 @@ void EngineListModel::setupDosbox(QString path)
     if (searchResult > -1)
     {
         Engines_[searchResult].path = path;
+        QModelIndex index = createIndex(searchResult, 0);
+        emit dataChanged(index, index);
         QMessageBox::information(NULL,"DOSBox Executable Updated", QString("DOSBox engine updated, now find your original iD Engine executable (e.g. DOOM2.EXE)"));
         emit updateCombo("DOSBox");
-        emit dataChanged(QModelIndex(),QModelIndex());
         setDoomExe();
         SaveEngineData();
         return;
     }
 
     EngineInfo newengine = {path, "DOSBox", Engine_DosBox, Pic_Default};
+    beginInsertRows(QModelIndex(), Engines_.count(), Engines_.count());
     Engines_ << newengine;
+    endInsertRows();
     QMessageBox::information(NULL,"Executable Added",QString("DOSBox engine added. You must now find your original iD Engine executable (e.g. DOOM2.EXE)"));
     setDoomExe();
     emit updateCombo("DOSBox");
-    emit dataChanged(QModelIndex(),QModelIndex());
     SaveEngineData();
 
 }
@@ -334,8 +339,9 @@ void EngineListModel::setDoomExe()
 
 void EngineListModel::removeRow(int row, const QModelIndex &parent)
 {
+    beginRemoveRows(parent, row, row);
     Engines_.removeAt(row);
-    QAbstractListModel::removeRow(row, parent);
+    endRemoveRows();
 }
 
 void EngineListModel::addDefaultEngine(QString path)
@@ -348,10 +354,11 @@ void EngineListModel::addDefaultEngine(QString path)
     }
 
     EngineInfo newengine = {path, "Custom engine", Engine_Default, Pic_Default};
+    beginInsertRows(QModelIndex(), Engines_.count(), Engines_.count());
     Engines_ << newengine;
+    endInsertRows();
     QMessageBox::information(NULL,"Executable Added",QString("Custom engine added!"));
     emit updateCombo("Custom engine");
-    emit dataChanged(QModelIndex(),QModelIndex());
     SaveEngineData();
 }
 
@@ -360,11 +367,11 @@ void EngineListModel::setNameFromIndex(QString name, const QModelIndex &index)
     if (!index.isValid())
         return;
 
-    if (index.row() >= Engines_.size())
+    if (index.row() >= Engines_.count())
         return;
 
     Engines_[index.row()].name = name;
-    emit dataChanged(QModelIndex(),QModelIndex());
+    emit dataChanged(index, index);
     SaveEngineData();
 }
 
@@ -373,11 +380,12 @@ void EngineListModel::setPathFromIndex(QString path, const QModelIndex &index)
     if (!index.isValid())
         return;
 
-    if (index.row() >= Engines_.size())
+    if (index.row() >= Engines_.count())
         return;
 
     Engines_[index.row()].path = path;
-    emit dataChanged(QModelIndex(),QModelIndex());
+
+    emit dataChanged(index, index);
     SaveEngineData();
 }
 
@@ -386,11 +394,11 @@ void EngineListModel::setTypeFromIndex(EngineType type, const QModelIndex &index
     if (!index.isValid())
         return;
 
-    if (index.row() >= Engines_.size())
+    if (index.row() >= Engines_.count())
         return;
 
     Engines_[index.row()].type = type;
-    emit dataChanged(QModelIndex(),QModelIndex());
+    emit dataChanged(index, index);
     SaveEngineData();
 }
 
@@ -399,11 +407,11 @@ void EngineListModel::setPicFromIndex(EnginePic pic, const QModelIndex &index)
     if (!index.isValid())
         return;
 
-    if (index.row() >= Engines_.size())
+    if (index.row() >= Engines_.count())
         return;
 
     Engines_[index.row()].EngineImage = pic;
-    emit dataChanged(QModelIndex(),QModelIndex());
+    emit dataChanged(index, index);
     SaveEngineData();
 }
 
@@ -423,8 +431,9 @@ ConfigListModel::ConfigListModel(QObject *parent) :QAbstractListModel(parent)
 
 void ConfigListModel::addRocket(const RocketFile &file)
 {
+    beginInsertRows(QModelIndex(), rockets.size(), rockets.size());
     rockets.append(file);
-    emit dataChanged(QModelIndex(),QModelIndex());
+    endInsertRows();
 }
 
 int ConfigListModel::rowCount(const QModelIndex &) const {
@@ -469,6 +478,7 @@ RocketFile *ConfigListModel::getRocketFromRow(int row)
 
 void ConfigListModel::removeRow(int row, const QModelIndex &parent)
 {
+    beginRemoveRows(parent, row, row);
     rockets.removeAt(row);
-    QAbstractListModel::removeRow(row, parent);
+    endRemoveRows();
 }

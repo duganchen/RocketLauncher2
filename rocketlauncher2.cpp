@@ -477,6 +477,10 @@ void RocketLauncher2::on_pushButton_2_clicked() //Select Engine
 
 void RocketLauncher2::on_combo_Engines_currentIndexChanged(int index)
 {
+    if (index == -1)
+    {
+        return;
+    }
     enginelist->setCurrentEngine(index);
     SetEnginePic(enginelist->getCurrentEngine()->EngineImage);
 }

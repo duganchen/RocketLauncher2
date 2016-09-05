@@ -74,12 +74,14 @@ void RocketLauncher2::on_button_addConfToFav_clicked()
     if (!inputExists(name))
     {
         QMessageBox::information(this,"Input Name", "Please input a name for this config to be saved");
+        ui->input_confName->setFocus();
         return;
     }
 
     if (getIndexOfDisplayText(conflist,ui->input_confName->text()) != QModelIndex())
     {
         QMessageBox::information(this, "Change Name" , "A profile of this name already exists!");
+        ui->input_confName->setFocus();
         return;
     }
 
