@@ -59,6 +59,7 @@ RocketLauncher2::RocketLauncher2(QWidget *parent, int argc, char *argv[]) :
     connect(ui->listbox_pwadload, SIGNAL(fileSystemPathDropped(QString)), this, SLOT(addpwad(QString)));
     connect(enginelist, SIGNAL(updateCombo(const QString)), this, SLOT(setEngineSelection(const QString)));
     connect(enginelist, SIGNAL(updateComboIndex(int)), this, SLOT(setEngineSelectionIndex(int)));
+    connect(ui->listbox_engines->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(enable_engine_controls()));
     connect(ui->listbox_fav, SIGNAL(fileSystemPathDropped(QString)), this, SLOT(addToFavorites(const QString)));
     connect(ui->listbox_fav, SIGNAL(internalItemDropped(QDropEvent*)), this, SLOT(copyItemToFav(QDropEvent*)));
     connect(ui->listbox_pwadload, SIGNAL(internalItemDropped(QDropEvent*)), this, SLOT(copyItemToPwads(QDropEvent*)));
@@ -692,6 +693,21 @@ void RocketLauncher2::on_listbox_IWADs_clicked(const QModelIndex &index)
     settings.setValue("lastIwadIndex",index.row());
 }
 
+void RocketLauncher2::enable_engine_controls()
+{
+    bool engineSelected = this->ui->listbox_engines->selectionModel()->hasSelection();
+    this->ui->groupBox_4->setEnabled(engineSelected);
+    this->ui->button_removeEng->setEnabled(engineSelected);
+
+    if (!engineSelected)
+    {
+        this->ui->input_selEngName->setText("");
+        this->ui->input_selEngPath->setText("");
+        this->ui->combo_EngType->setCurrentIndex(0);
+        this->ui->combo_EngPic->setCurrentIndex(0);
+    }
+
+}
 
 //==========MISC==========
 

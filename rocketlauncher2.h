@@ -123,6 +123,8 @@ private slots:
 
     void on_button_idExeBrowse_clicked();
 
+    void enable_engine_controls();
+
 private:
     Ui::RocketLauncher2 *ui;
     QString m_settingsfile;
